@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>JojaMarket</title>
+</head>
+<body>
+<h1>Success!</h1>
+text:
+<div th:text="${hello}">!显示欢迎信息！</div>
+utext:
+<div th:utext="${hello}"></div>
+<hr>
+<h4 th:each="user: ${users}" th:text="${user}"></h4>
+<hr>
+<h4>
+    <span th:each="user : ${users}">[[${user}]] </span>
+</h4>
+</body>
+</html>
