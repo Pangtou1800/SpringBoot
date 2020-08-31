@@ -675,21 +675,22 @@ logging:
 
 ## 第四节 Web开发
 
-    4.1 使用步骤：
-        ·在创建界面选择想要的模块
-        ·创建工程之后就自动导入了模块的依赖
-        ·在配置文件中指定少量必须的配置就可以运行起来
-        ·编写业务逻辑代码即可
+### 4.1 使用步骤
 
-        难点：
-            每一个场景中，SpringBoot自动配置了哪些属性？
-            那些属性必须指定，哪些属性可以修改？
+    ·在创建界面选择想要的模块
+    ·创建工程之后就自动导入了模块的依赖
+    ·在配置文件中指定少量必须的配置就可以运行起来
+    ·编写业务逻辑代码即可
 
-            -> 观察xxxAutoConfiguration, xxxProperties来获取相关内容
+    难点：
+        每一个场景中，SpringBoot自动配置了哪些属性？
+        那些属性必须指定，哪些属性可以修改？
 
-    4.2 SpringBoot对静态资源的映射规则
+        -> 观察xxxAutoConfiguration, xxxProperties来获取相关内容
 
-        关注WebMvcAutoConfiguration
+### 4.2 SpringBoot对静态资源的映射规则
+
+    关注WebMvcAutoConfiguration
 
 ```java
     @Override
@@ -716,56 +717,56 @@ logging:
     @ConfigurationProperties(prefix = "spring.resources", ignoreUnknownFields = false)
     public class ResourceProperties {
 ```
-        1./webjars/下的所有请求都去classpath:/META-INF/resources/webjars/寻找
+    1./webjars/下的所有请求都去classpath:/META-INF/resources/webjars/寻找
 
-            如：http://localhost:8080/webjars/jquery/3.5.1/jquery.js
-        
-            ※webjars：以jar包的方式引入工程资源
+        如：http://localhost:8080/webjars/jquery/3.5.1/jquery.js
+    
+        ※webjars：以jar包的方式引入工程资源
 [webjars官网](https://www.webjars.org/)
 
-        2.spring.resources设置和静态资源有关的参数
-            ·缓存时间
+    2.spring.resources设置和静态资源有关的参数
+        ·缓存时间
 
-        3.访问当前项目的任何资源/**，没有其他响应时就访问静态资源文件夹
-            ·classpath:/META-INF/resources/
-            ·classpath:/resources/
-            ·classpath:/static/
-            ·classpath:/public/
-            ·/ - 当前项目的根路径
+    3.访问当前项目的任何资源/**，没有其他响应时就访问静态资源文件夹
+        ·classpath:/META-INF/resources/
+        ·classpath:/resources/
+        ·classpath:/static/
+        ·classpath:/public/
+        ·/ - 当前项目的根路径
 
-        4.欢迎页
-            静态资源文件夹下的index.html
+    4.欢迎页
+        静态资源文件夹下的index.html
 
-        5.favicon
-            任何访问的的**/favicon.ico都从静态资源下找favicon.ico
+    5.favicon
+        任何访问的的**/favicon.ico都从静态资源下找favicon.ico
 
-        6.自定义
-            spring.resources.static-location=classpath:/hello/,classpath:/resource/
+    6.自定义
+        spring.resources.static-location=classpath:/hello/,classpath:/resource/
 
-    4.3 模板引擎
+### 4.3 模板引擎
 
-        常见的有：JSP，Velocity，Freemarker，ThymeLeaf...
+    常见的有：JSP，Velocity，Freemarker，ThymeLeaf...
 
-        模板引擎的功能就是动态结合页面和数据，生成最后的输出页面
+    模板引擎的功能就是动态结合页面和数据，生成最后的输出页面
 
-        SpringBoot推荐使用ThymeLeaf
-            ·语法简单
-            ·功能强大
+    SpringBoot推荐使用ThymeLeaf
+        ·语法简单
+        ·功能强大
 
-        1.引入ThymeLeaf
+    1.引入ThymeLeaf
 
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-thymeleaf</artifactId>
-            </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
 
-            覆盖默认版本：
-            <properties>
-                <thymeleaf.version>3.0.9.RELEASE</thymeleaf.version>
-                <thymeleaf-layout-dialect.version>2.1.1</thymeleaf-layout-dialect.version>
-            </properties>
+        覆盖默认版本：
+        <properties>
+            <thymeleaf.version>3.0.9.RELEASE</thymeleaf.version>
+            <thymeleaf-layout-dialect.version>2.1.1</thymeleaf-layout-dialect.version>
+        </properties>
 
-        2.ThymeLeaf语法
+    2.ThymeLeaf语法
 ```java
     @ConfigurationProperties(prefix = "spring.thymeleaf")
     public class ThymeleafProperties {
@@ -776,49 +777,49 @@ logging:
 
 	public static final String DEFAULT_SUFFIX = ".html";
 ```
-            类路径下的/templates中
+        类路径下的/templates中
 
-            准备：html 加入命名空间<html xmlns:th="http://www.thymeleaf.org">
+        准备：html 加入命名空间<html xmlns:th="http://www.thymeleaf.org">
 
-            在标签上添加属性：
-                <div th:text="${hello}">!显示欢迎信息！</div>
-            取值内容就会替换<div>本来的文本内容了
+        在标签上添加属性：
+            <div th:text="${hello}">!显示欢迎信息！</div>
+        取值内容就会替换<div>本来的文本内容了
 
-        3.语法规则1
-            ·th:text - 改变当前元素里的文本内容
+    3.语法规则1
+        ·th:text - 改变当前元素里的文本内容
 
-            => th:任意HTML属性，就可以替换原生属性的值
+        => th:任意HTML属性，就可以替换原生属性的值
 
-            ·Fragment inclusion
-                -th:insert
-                -th:replace
-            ·Fragment iteration
-                -th:each
-            ·Conditional evalution
-                -th:if
-                -th:unless
-                -th:switch
-                -th:case
-            ·Local variable modification
-                -th:object
-                -th:with
-            ·General attribute modification
-                -th:attr
-                -th:attrprepend
-                -th:attrappend
-            ·Specific attribute modification
-                -th:value
-                -th:href
-                -th:src
-            ·Text(tag body modification)
-                -th:text
-                -th:utext - 不转义特殊字符
-            ·Fragment specification
-                -th:fragment
-            ·Fragment removal
-                -th:remove
+        ·Fragment inclusion
+            -th:insert
+            -th:replace
+        ·Fragment iteration
+            -th:each
+        ·Conditional evalution
+            -th:if
+            -th:unless
+            -th:switch
+            -th:case
+        ·Local variable modification
+            -th:object
+            -th:with
+        ·General attribute modification
+            -th:attr
+            -th:attrprepend
+            -th:attrappend
+        ·Specific attribute modification
+            -th:value
+            -th:href
+            -th:src
+        ·Text(tag body modification)
+            -th:text
+            -th:utext - 不转义特殊字符
+        ·Fragment specification
+            -th:fragment
+        ·Fragment removal
+            -th:remove
 
-        4.语法规则2 - 表达式
+    4.语法规则2 - 表达式
 
 ```properties
 Simple expressions: - 基础表达式
@@ -883,5 +884,101 @@ Special tokens: - 特殊
     No-Operation: _
 ```
 
+### 4.4 SpringBoot对SpringMVC的支持
 
+    1.SpringBoot已经自动配置好了SpringMVC需要的大部分组件
 
+        ·ViewResolver
+            -ContentNegotiationViewResolver
+                从IOC容器中获取所有视图解析器并组合它们
+                -> 想要定制的时候只要向IOC容器加入即可
+            -BeanNameViewResolver
+        ·静态资源文件路径，webjars
+        ·index.html
+        ·favicon.ico
+        ·自动注册了Converter，GenericConverter，Formatter
+            -Converter 转换器 - 类型转换组件
+            -Formattter 格式化器
+                自己添加的格式化器、转换器，加入IOC容器中即可
+        ·HttpMessageConverters
+            -转换Http请求和响应
+            -值是从容器中确定的，所以自己添加MessageConverter时加入IOC容器即可
+        ·MessageCodeResolver
+            -定义错误码生成规则
+        ·ConfigurableWebBindingInitializer
+            -初始化WebDataBinder：请求数据绑定到JavaBean等
+            -可以自定义添加到容器中
+
+    2.总结：如何修改SpringBoot的默认配置？
+
+        > 基本将自定义组件放进容器就可以了
+            ·对于只需要一个的组件，SpringBoot基本上都会先尝试从容器中获取组件之后再自定义
+            ·对于可以有多个的组件，SpringBoot会尝试将多个组件组合使用
+
+        > 想要扩展SpringMVC时，编写一个配置类
+            ·@Configuration
+            ·继承WebMvcConfigurerAdapter(实装WebMvcConfigurer)
+            ·不能标记@EnableWebMvc
+
+            既保留默认配置，也加入扩展内容
+
+        > 全面接管SpringMVC配置时，编写一个配置类
+            ·@EnableWebMvc
+            ·其余同上
+
+            所有的MVC自动配置就都失效了
+
+### 4.5 ResufulCRUD实例
+
+    1.访问首页
+        ·在自定义Configuration中配置首页路径
+         @Bean
+        public WebMvcConfigurerAdapter webMvcConfigurerAdapter() {
+            return new WebMvcConfigurerAdapter() {
+                @Override
+                public void addViewControllers(ViewControllerRegistry registry) {
+                    super.addViewControllers(registry);
+                    registry.addViewController("/").setViewName("login");
+                    registry.addViewController("/index.html").setViewName("login");
+                }
+            };
+        }
+        ·静态资源在templates中，资源链接替换为th:标签形式
+            > 好处：可以自动更改项目名
+
+    2.页面国际化
+        经典：
+            ·编写国际化配置文件
+            ·使用resourceBundleMessageSource管理国际化资源文件
+            ·在JSP页面使用fmt标签获取国际化内容
+        SpringBoot：
+            ·编写国际化配置文件
+            ·SpringBoot自动配置好了管理国际化资源的组件
+                ※默认类路径下messages.properties
+
+                设基础名：spring.messages.basename=i18n.login
+            ·用ThymeLeaf - #{}取出
+
+        至此：
+            根据浏览器的语言设置信息切换国际化
+
+        实现按钮切换：
+            ·原理 - 利用国际化区域信息对象（Locale）
+
+            SpringBoot默认配置了LocaleResolver - 根据请求头带来的区域信息进行国际化
+
+            ·自定义LocaleResolver - 根据连接的参数来国际化
+
+                @Override
+                public Locale resolveLocale(HttpServletRequest request) {
+                    String l = request.getParameter("l");
+                    if (!StringUtils.isEmpty(l)){
+                        String[] params = l.split("_");
+                        return new Locale(params[0], params[1]);
+                    }
+                    return Locale.getDefault();
+                }
+
+            ·在连接上带上 语言_区域 信息
+
+                <a class="btn btn-sm" th:href="@{/index.html(l='zh_CN')}">中文</a>
