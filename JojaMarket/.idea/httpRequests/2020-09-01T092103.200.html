@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Signin Template for Bootstrap</title>
+    <!-- Bootstrap core CSS -->
+    <link href="/crud/webjars/bootstrap/4.5.2/css/bootstrap.css;jsessionid=AD032608DA92AD3DBBF2FCEBACD0B82E" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="/crud/asserts/css/signin.css;jsessionid=AD032608DA92AD3DBBF2FCEBACD0B82E" rel="stylesheet">
+</head>
+
+<body class="text-center">
+<form class="form-signin" action="/crud/user/login;jsessionid=AD032608DA92AD3DBBF2FCEBACD0B82E" method="post">
+    <img class="mb-4" src="/crud/asserts/img/bootstrap-solid.svg;jsessionid=AD032608DA92AD3DBBF2FCEBACD0B82E" alt="" width="72" height="72">
+    <h1 class="h3 mb-3 font-weight-normal">请登录</h1>
+    <p style="color:red">没有权限，请先登录</p>
+    <label class="sr-only">用户名</label>
+    <input type="text" class="form-control" placeholder="用户名" required="" autofocus=""
+           name="username">
+    <label class="sr-only">密码</label>
+    <input type="password" class="form-control" placeholder="密码" required=""
+           name="password">
+    <div class="checkbox mb-3">
+        <label>
+            <input type="checkbox" value="remember-me"> 记住我
+        </label>
+    </div>
+    <button class="btn btn-lg btn-primary btn-block" type="submit">登录</button>
+    <p class="mt-5 mb-3 text-muted">© 2017-2018</p>
+    <a class="btn btn-sm" href="/crud/index.html;jsessionid=AD032608DA92AD3DBBF2FCEBACD0B82E?l=zh_CN">中文</a>
+    <a class="btn btn-sm" href="/crud/index.html;jsessionid=AD032608DA92AD3DBBF2FCEBACD0B82E?l=en_US">English</a>
+</form>
+
+</body>
+
+</html>

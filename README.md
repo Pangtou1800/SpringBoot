@@ -982,3 +982,72 @@ Special tokens: - 特殊
             ·在连接上带上 语言_区域 信息
 
                 <a class="btn btn-sm" th:href="@{/index.html(l='zh_CN')}">中文</a>
+
+    3.登录功能
+
+        小技巧：
+            要让开发时期静态资源变更实时生效
+                1.禁用模板引擎缓存
+                2.Ctrl+F9 IDEA再次编译
+
+        为了防止重复提交
+            1.添加view映射
+                registry.addViewController("/main.html").setViewName("dashboard");
+            2.重定向至登录成功页面
+                return "redirect:/main.html";
+            3.拦截器防止直接连接主页面
+                public class LoginHandlerInterceptor implements HandlerInterceptor {
+                    public boolean preHandle(
+                    //从session中检查登录信息
+                    //没有登录时发送至首页面
+    
+    4.员工列表
+
+        ·Restful CRUD
+                            请求URI     请求方式
+            查询所有员工     emps        GET
+            查询某个员工     emp/{id}    GET
+            添加页面         emp         GET
+            添加员工         emp         POST
+            修改页面         emp/{id}    GET
+            (查出员工回显)
+            修改员工         emp         PUT
+            删除员工         emp/{id}    DELETE
+
+        4.1 抽取公共html代码片段
+            - 抽取
+                <div th:fragment="copy">
+                    ...
+                </div>
+            - 引入
+                <div th:insert="~{footer::copy}">
+                    ...
+                </div>
+
+                ~{template::selector} - 模板名：选择器
+                {template::fragmentname} - 模板名：片段名
+
+                模板名照thymeleaf的视图解析名拼串
+
+            - 三种引入公共片段的th属性：
+                th:insert - 片段直接插入宿主元素
+                th:replace - 片段取代宿主元素
+                th:include - 片段内容取代宿主元素内容
+
+            - 在引用公共片段时传入参数
+
+                th:replace="commons/bar::#sidebar(activeUri='main.html')
+
+        4.2 表示
+
+            - 日期格式化
+                ${#dates.format(emp.birth, 'yyyy-MM-dd')}
+
+    5.添加员工
+
+        最容易出现的问题：数据格式不对
+
+            日期：2017-12-01 2017/12/01 2017.12.01
+
+            日期格式化 spring.mvc.date-format=yyyy-MM-dd
+
