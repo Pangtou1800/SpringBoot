@@ -232,6 +232,7 @@
 
         server:
             port: 8081
+
             path: /hello
 
         ※属性和值大小写敏感
@@ -266,9 +267,11 @@
         ·数组/List/Set
             用- 值表示数组的元素
                 pets:
+
                     - cat
                     - dog
                     - pig
+
             
             也支持行内写法
                 pets: [cat,dog,pig]
@@ -283,10 +286,12 @@
                 birthday: 2017/12/12
                 maps: {key1: value1, key2: value2}
                 lists:
+
                     - 李四
                     - 王五
                     - 小花
                     - 赵六
+
                 dog:
                     name: Doggie
                     age: 2
@@ -332,6 +337,7 @@
     @PropertySource("classpath:person.properties")
 
     2. 导入额外的配置文件并使其内容生效
+
     @ImportResource(locations={"classpath:beans.xml"})
 
     ※可以就添加在主类上
@@ -368,7 +374,8 @@
                 spring.profiles.active=dev
 
     2.yml文档块
-```yml
+
+``` yml
     server:
         port: 8081
     spring:
@@ -460,8 +467,8 @@
             ·从properties中获取EnableAutoConfiguration.class类对应的值，
              然后把它们添加到容器中
 
-org.springframework.boot.autoconfigure.aop.AopAutoConfiguration,\
-org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration,\
+org.springframework.boot.autoconfigure.aop. AopAutoConfiguration, \
+org.springframework.boot.autoconfigure.batch. BatchAutoConfiguration, \
 ...
 
     例：
@@ -510,6 +517,7 @@ org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration,\
         -----------------
 
         DispatcherServletAutoConfiguration matched:
+
         - @ConditionalOnClass found required class 'org.springframework.web.servlet.DispatcherServlet' (OnClassCondition)
         - found 'session' scope (OnWebApplicationCondition)
 
@@ -584,7 +592,7 @@ org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration,\
 
     3.SpringBoot日志关系
 
-```xml
+``` xml
     <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter</artifactId>
@@ -595,6 +603,7 @@ org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration,\
         <artifactId>spring-boot-starter-logging</artifactId>
     </dependency>
 ```
+
         -> logback-classic -> logback-core
         -> jul-to-slf4j     --↘  
         -> log4j-over-slf4j ---|--> slf4j-api
@@ -608,7 +617,8 @@ org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration,\
     4.SpringBoot使用
 
         > 默认配置
-```java
+
+``` java
     Logger logger = LoggerFactory.getLogger(getClass());
 
     @Test
@@ -624,8 +634,10 @@ org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration,\
         logger.error("这是error日志...");
     }
 ```
+
         > yml配置：
-```yml
+
+``` yml
 logging:
   level:
     pt.joja.SpringBootLogTest: trace
@@ -692,7 +704,7 @@ logging:
 
     关注WebMvcAutoConfiguration
 
-```java
+``` java
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         if (!this.resourceProperties.isAddMappings()) {
@@ -717,11 +729,13 @@ logging:
     @ConfigurationProperties(prefix = "spring.resources", ignoreUnknownFields = false)
     public class ResourceProperties {
 ```
+
     1./webjars/下的所有请求都去classpath:/META-INF/resources/webjars/寻找
 
         如：http://localhost:8080/webjars/jquery/3.5.1/jquery.js
     
         ※webjars：以jar包的方式引入工程资源
+
 [webjars官网](https://www.webjars.org/)
 
     2.spring.resources设置和静态资源有关的参数
@@ -767,7 +781,8 @@ logging:
         </properties>
 
     2.ThymeLeaf语法
-```java
+
+``` java
     @ConfigurationProperties(prefix = "spring.thymeleaf")
     public class ThymeleafProperties {
 
@@ -777,6 +792,7 @@ logging:
 
 	public static final String DEFAULT_SUFFIX = ".html";
 ```
+
         类路径下的/templates中
 
         准备：html 加入命名空间<html xmlns:th="http://www.thymeleaf.org">
@@ -821,7 +837,7 @@ logging:
 
     4.语法规则2 - 表达式
 
-```properties
+``` properties
 Simple expressions: - 基础表达式
     Variable Expressions: ${...} - 获取值的表达式，OGNL
         1.获取对象属性
@@ -1015,11 +1031,15 @@ Special tokens: - 特殊
             删除员工         emp/{id}    DELETE
 
         4.1 抽取公共html代码片段
+
             - 抽取
+
                 <div th:fragment="copy">
                     ...
                 </div>
+
             - 引入
+
                 <div th:insert="~{footer::copy}">
                     ...
                 </div>
@@ -1030,6 +1050,7 @@ Special tokens: - 特殊
                 模板名照thymeleaf的视图解析名拼串
 
             - 三种引入公共片段的th属性：
+
                 th:insert - 片段直接插入宿主元素
                 th:replace - 片段取代宿主元素
                 th:include - 片段内容取代宿主元素内容
@@ -1041,6 +1062,7 @@ Special tokens: - 特殊
         4.2 表示
 
             - 日期格式化
+
                 ${#dates.format(emp.birth, 'yyyy-MM-dd')}
 
     5.添加员工
@@ -1050,4 +1072,183 @@ Special tokens: - 特殊
             日期：2017-12-01 2017/12/01 2017.12.01
 
             日期格式化 spring.mvc.date-format=yyyy-MM-dd
+
+    6.修改员工
+
+        区分是修改还是添加？
+            -修改需要回显
+            -添加不需要回显
+
+        发送PUT请求
+            -配置HiddenHttpMethodFilter
+            -POST表单中隐藏input _method + METHOD
+
+    7.删除员工
+
+        用ThymeLeaf为DOM元素添加额外属性
+            -th:attr="del_uri=@{/emp/}+${emp.id}"
+
+## 第五节 错误处理机制
+
+### 5.1 默认错误处理
+
+    > 浏览器
+        Whitelabel Error Page
+        This application has no explicit mapping for /error, so you are seeing this as a fallback.
+
+        Wed Sep 02 19:46:25 CST 2020
+        There was an unexpected error (type=Not Found, status=404).
+        No message available
+
+    > 其他客户端
+        {
+        "timestamp": "2020-09-02T11:47:59.953+0000",
+        "status": 404,
+        "error": "Not Found",
+        "message": "No message available",
+        "path": "/crud/empsa"
+        }
+
+### 5.2 默认处理原理 - 自动配置
+
+    ErrorMvcAutoConfiguration
+
+    1.默认添加的组件
+        @Bean
+        @ConditionalOnMissingBean(value = ErrorAttributes.class, search = SearchStrategy.CURRENT)
+        public DefaultErrorAttributes errorAttributes() {
+
+        @Bean
+        @ConditionalOnMissingBean(value = ErrorController.class, search = SearchStrategy.CURRENT)
+        public BasicErrorController basicErrorController(ErrorAttributes errorAttributes,
+                ObjectProvider<ErrorViewResolver> errorViewResolvers) {
+
+        @Bean
+	    public ErrorPageCustomizer errorPageCustomizer(DispatcherServletPath dispatcherServletPath) {
+
+        @Bean
+	    public static PreserveErrorControllerTargetClassPostProcessor preserveErrorControllerTargetClassPostProcessor() {
+
+    2.默认错误流程
+
+        400+或500+时，ErrorPageCustomer就会生效，订制错误的响应规则
+
+        @Value("${error.path:/error}")
+	    private String path = "/error";
+
+        没有配置的时候就↓
+
+        @RequestMapping("${server.error.path:${error.path:/error}}")
+        public class BasicErrorController extends AbstractErrorController {
+
+            然后根据请求头里有没有 Accept: text/html来决定调用返回HTML或JSON的默认处理方法
+
+        默认去解析error/404地址
+            ·首先试图交由模板引擎解析
+            ·不可以时再从静态资源中寻找对应页面
+
+        > 如何订制错误页面？
+            -有模板引擎时，error/状态码.html加入即可
+            -4XX或5XX.html可以统一匹配错误页面（当然遵循精确匹配原则）
+
+            -页面获取信息：
+                [[${status}]]
+                ...
+
+        > 如何订制错误JSON数据？
+            -利用SpringMVC
+            @ControllerAdvice
+            public class MyExceptionHandler {
+                @ResponseBody
+                @ExceptionHandler(UserNotExistException.class)
+                public Map<String, Object> handleException(UserNotExistException e){
+
+                缺点：不会自适应服务器和其他客户端
+
+            -转发到/error，利用SpringBoot的自适应
+                @ExceptionHandler(UserNotExistException.class)
+                public String handleException(UserNotExistException e, HttpServletRequest request) {
+
+                request.setAttribute("javax.servlet.error.status_code", 525);
+
+                ※错误信息都要设在request域中
+
+            -将订制数据携带出去
+                1.实现ErrorController或者继承AbstractErrorController
+                2.覆盖DefaultErrorAttributes
+                    @Component
+                    public class MyErrorAttributes extends DefaultErrorAttributes {
+                        @Override
+                        public Map<String, Object> getErrorAttributes(WebRequest webRequest, boolean includeStackTrace) {
+                            Map<String, Object> errorAttributes = super.getErrorAttributes(webRequest, includeStackTrace);
+                            errorAttributes.put("company", "JojaMarket");
+                            errorAttributes.put("ext", webRequest.getAttribute("ext", WebRequest.SCOPE_REQUEST));
+                            return errorAttributes;
+                        }
+
+                ·map就会被转换为JSON
+                ·map中的值可以在错误页面上取出
+
+## 第六节 配置嵌入式Servlet容器
+
+    SpringBoot默认使用嵌入式的Servlet容器（Tomcat）
+
+    1.如何订制修改Tomcat配置
+
+        关注：ServerProperties
+
+        ·各种相关server.的属性
+        ·Tomcat相关就是server.tomcat
+        ...
+
+        ·也可以编写一个EmbeddedServletContainerCustomizer
+            已被替代为WebServerFactoryCustomizer
+
+            @Bean
+            public WebServerFactoryCustomizer<ConfigurableWebServerFactory> webServerFactoryCustomizer() {
+                return new WebServerFactoryCustomizer<ConfigurableWebServerFactory>() {
+                    @Override
+                    public void customize(ConfigurableWebServerFactory factory) {
+                        factory.setPort(8083);
+                    }
+                };
+            }
+
+    2.注册Servlet组件
+        -Servlet: ServletRegistrationBean
+        -Filter: FilterRegistrationBean
+        -Listener: ListenerRegistrationBean
+
+        @Bean
+        public ServletRegistrationBean<MyServlet> myServlet() {
+            return new ServletRegistrationBean<>(new MyServlet(), "/myServlet");
+        }
+
+        向容器中注册各种RegistrationBean即可
+
+        最好的例子：SpringBoot自动注册SpringMVC的DispatcherServlet
+
+    3.如何切换为其他的Servlet容器
+        -Jetty（适合长连接应用，比如在线聊天）
+        -Undertow(不支持JSP，但并发性能很好)
+
+        对于这三个默认支持的Servlet容器，切换pom的依赖关系即可
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jetty</artifactId>
+        </dependency>
+
+
 

@@ -3,13 +3,13 @@ package pt.joja.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import pt.joja.dao.DepartmentDao;
 import pt.joja.dao.EmployeeDao;
 import pt.joja.entities.Department;
 import pt.joja.entities.Employee;
 
+import java.nio.file.Path;
 import java.util.Collection;
 
 @Controller
@@ -43,6 +43,29 @@ public class EmployeeController {
         System.out.println(employee);
         employeeDao.save(employee);
 
+        return "redirect:/emps";
+    }
+
+    @GetMapping("/emp/{id}")
+    public String toEditPage(@PathVariable("id") Integer id, Model model) {
+        Employee employee = employeeDao.get(id);
+        model.addAttribute("emp", employee);
+        Collection<Department> departments = departmentDao.getDepartments();
+        model.addAttribute("departments", departments);
+
+        return "emp/add";
+    }
+
+    @PutMapping("/emp")
+    public String updateEmployee(Employee employee) {
+        System.out.println("PUT: " + employee);
+        employeeDao.save(employee);
+        return "redirect:/emps";
+    }
+
+    @DeleteMapping("/emp/{id}")
+    public String deleteEmployee(@PathVariable("id") Integer id) {
+        employeeDao.delete(id);
         return "redirect:/emps";
     }
 

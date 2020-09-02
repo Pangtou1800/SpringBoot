@@ -9,10 +9,10 @@
 
     <title>Dashboard Template for Bootstrap</title>
     <!-- Bootstrap core CSS -->
-    <link href="asserts/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.5.2/css/bootstrap.css}">
 
     <!-- Custom styles for this template -->
-    <link href="asserts/css/dashboard.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/asserts/css/dashboard.css}">
     <style type="text/css">
         /* Chart.js */
 
@@ -50,36 +50,38 @@
 
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
             <form th:action="@{/emp}" method="post">
+                <input type="hidden" name="_method" th:value="${emp!=null}?PUT:POST"/>
+                <input type="hidden" name="id" th:if="${emp!=null}" th:value="${emp.id}"/>
                 <div class="form-group">
                     <label>LastName</label>
-                    <input name="lastName" type="text" class="form-control" placeholder="LastName">
+                    <input name="lastName" type="text" class="form-control" placeholder="LastName" th:value="${emp!=null}?${emp.lastName}">
                 </div>
                 <div class="form-group">
                     <label>Email</label>
-                    <input name="email" type="email" class="form-control" placeholder="Email">
+                    <input name="email" type="email" class="form-control" placeholder="Email" th:value="${emp!=null}?${emp.email}">
                 </div>
                 <div class="form-group">
                     <label>Gender</label><br/>
                     <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="gender" value="1">
+                        <input class="form-check-input" type="radio" name="gender" value="1" th:checked="${emp!=null}?${emp.gender==1}">
                         <label class="form-check-label">男</label>
                     </div>
                     <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="gender" value="0">
+                        <input class="form-check-input" type="radio" name="gender" value="0" th:checked="${emp!=null}?${emp.gender==0}">
                         <label class="form-check-label">女</label>
                     </div>
                 </div>
                 <div class="form-group">
                     <label>Department</label>
                     <select class="form-control" name="department.id">
-                        <option th:each="department:${departments}" th:text="${department.departmentName}" th:value="${department.id}"></option>
+                        <option th:each="department:${departments}" th:text="${department.departmentName}" th:value="${department.id}" th:selected="${emp!=null}?${department.id==emp.department.id}"></option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Birthday</label>
-                    <input name="birth" type="text" class="form-control" placeholder="2020-09-01"/>
+                    <input name="birth" type="text" class="form-control" placeholder="2020-09-01" th:value="${emp!=null}?${#dates.format(emp.birth, 'yyyy-MM-dd')}"/>
                 </div>
-                <button type="submit" class="btn btn-default">添加</button>
+                <button type="submit" class="btn btn-default" th:text="${emp!=null}?'修改':'添加'"></button>
             </form>
         </main>
     </div>
@@ -88,18 +90,18 @@
 <!-- Bootstrap core JavaScript
 ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
-<script type="text/javascript" src="asserts/js/jquery-3.2.1.slim.min.js"></script>
-<script type="text/javascript" src="asserts/js/popper.min.js"></script>
-<script type="text/javascript" src="asserts/js/bootstrap.min.js"></script>
+<script type="text/javascript" th:src="@{/webjars/jquery/3.5.1/jquery.js}"></script>
+<script type="text/javascript" th:src="@{/webjars/popper.js/1.16.0/popper.js}"></script>
+<script type="text/javascript" th:src="@{/webjars/bootstrap/4.5.2/js/bootstrap.js}"></script>
 
 <!-- Icons -->
-<script type="text/javascript" src="asserts/js/feather.min.js"></script>
+<script type="text/javascript" th:src="@{/asserts/js/feather.min.js}"></script>
 <script>
     feather.replace()
 </script>
 
 <!-- Graphs -->
-<script type="text/javascript" src="asserts/js/Chart.min.js"></script>
+<script type="text/javascript" th:src="@{/asserts/js/Chart.min.js}"></script>
 <script>
     var ctx = document.getElementById("myChart");
     var myChart = new Chart(ctx, {

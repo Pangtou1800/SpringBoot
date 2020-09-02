@@ -1,3 +1,51 @@
+GET http://localhost:8080/crud/hello?user=aaa
+
+<> 2020-09-02T085857.500.json
+
+###
+
+GET http://localhost:8080/crud/hello?user=aaa
+
+<> 2020-09-02T084220.500.json
+
+###
+
+GET http://localhost:8080/crud/hello?user=aaa
+
+<> 2020-09-02T083916.200.json
+
+###
+
+GET http://localhost:8080/crud/hello?user=aaa
+
+<> 2020-09-02T083820.200.json
+
+###
+
+GET http://localhost:8080/crud/hello?user=aaa
+
+<> 2020-09-02T083517.200.json
+
+###
+
+GET http://localhost:8080/crud/hello?user=aaa
+
+<> 2020-09-02T083226.500.json
+
+###
+
+GET http://localhost:8080/crud/empsa
+
+<> 2020-09-02T080800.404.json
+
+###
+
+GET http://localhost:8080/crud/empsa
+
+<> 2020-09-02T074800.404.json
+
+###
+
 GET http://localhost:8080/crud/emps
 
 <> 2020-09-01T092103.200.html
