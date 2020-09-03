@@ -1193,62 +1193,203 @@ Special tokens: - 特殊
 
     SpringBoot默认使用嵌入式的Servlet容器（Tomcat）
 
-    1.如何订制修改Tomcat配置
+### 6.1 如何订制修改Tomcat配置
 
-        关注：ServerProperties
+    关注：ServerProperties
 
-        ·各种相关server.的属性
-        ·Tomcat相关就是server.tomcat
-        ...
+    ·各种相关server.的属性
+    ·Tomcat相关就是server.tomcat
+    ...
 
-        ·也可以编写一个EmbeddedServletContainerCustomizer
-            已被替代为WebServerFactoryCustomizer
-
-            @Bean
-            public WebServerFactoryCustomizer<ConfigurableWebServerFactory> webServerFactoryCustomizer() {
-                return new WebServerFactoryCustomizer<ConfigurableWebServerFactory>() {
-                    @Override
-                    public void customize(ConfigurableWebServerFactory factory) {
-                        factory.setPort(8083);
-                    }
-                };
-            }
-
-    2.注册Servlet组件
-        -Servlet: ServletRegistrationBean
-        -Filter: FilterRegistrationBean
-        -Listener: ListenerRegistrationBean
+    ·也可以编写一个EmbeddedServletContainerCustomizer
+        已被替代为WebServerFactoryCustomizer
 
         @Bean
-        public ServletRegistrationBean<MyServlet> myServlet() {
-            return new ServletRegistrationBean<>(new MyServlet(), "/myServlet");
+        public WebServerFactoryCustomizer<ConfigurableWebServerFactory> webServerFactoryCustomizer() {
+            return new WebServerFactoryCustomizer<ConfigurableWebServerFactory>() {
+                @Override
+                public void customize(ConfigurableWebServerFactory factory) {
+                    factory.setPort(8083);
+                }
+            };
         }
 
-        向容器中注册各种RegistrationBean即可
+    也可以放一个嵌入式Servlet容器定制器
 
-        最好的例子：SpringBoot自动注册SpringMVC的DispatcherServlet
+### 6.2 注册Servlet组件
 
-    3.如何切换为其他的Servlet容器
-        -Jetty（适合长连接应用，比如在线聊天）
-        -Undertow(不支持JSP，但并发性能很好)
+    -Servlet: ServletRegistrationBean
+    -Filter: FilterRegistrationBean
+    -Listener: ListenerRegistrationBean
 
-        对于这三个默认支持的Servlet容器，切换pom的依赖关系即可
+    @Bean
+    public ServletRegistrationBean<MyServlet> myServlet() {
+        return new ServletRegistrationBean<>(new MyServlet(), "/myServlet");
+    }
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-tomcat</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+    向容器中注册各种RegistrationBean即可
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jetty</artifactId>
-        </dependency>
+    最好的例子：SpringBoot自动注册SpringMVC的DispatcherServlet
 
+### 6.3 如何切换为其他的Servlet容器
 
+    -Jetty（适合长连接应用，比如在线聊天）
+    -Undertow(不支持JSP，但并发性能很好)
 
+    对于这三个默认支持的Servlet容器，切换pom的依赖关系即可
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+        <exclusions>
+            <exclusion>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-tomcat</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-jetty</artifactId>
+    </dependency>
+
+### 6.4 嵌入式Servlet容器和外置Servlet容器
+
+    ·优点:
+        简单、便携
+    ·缺点：
+        默认不支持JSP
+        优化定制复杂（ServerProperties或者自定义定制器，甚至自己编写嵌入式容器创建工厂）
+
+    使用外置Servlet容器
+        1.安装Tomcat
+        2.应用打包为war包
+
+    步骤：
+        1.创建为war项目及其目录结构(main/webapp/WEB-INF/web.xml)
+        2.将嵌入式的Tomcat指定为provided
+        3.编写一个ServletInitializer extends SpringBootServletInitializer
+            @Override
+            protected SpringApplicationBuilder configure(SpringApplicationBuilder)
+            // 传入SpringBoot的应用主程序
+        4.启动服务器就可以使用了
+
+    启动原理：
+        jar包：直接执行SpringBoot启动类的主方法即可
+        war包：启动服务器，服务器启动SpringBoot应用
+
+        Servlet3.0中有一项规范：
+            Shared libraries and runtimes pluggability
+            1.在Web应用启动时，会创建当前Web应用中的每一个jar包中的
+                ServletContainerInitializer的实现类的实例
+            2.该实现类从jar包的META-INF/services文件下的名为
+                javax.servlet.ServletContainerInitializer的文件，
+                文件内容指向该实现类的全类名
+            3.还可以使用@HandleTypes，在应用启动的时候，加载我们感兴趣的类
+
+        就是这个了：
+        org\springframework\spring-web\5.2.8.RELEASE\spring-web-5.2.8.RELEASE.jar!\META-INF\services\javax.servlet.ServletContainerInitializer
+
+            org.springframework.web.SpringServletContainerInitializer
+
+            @HandlesTypes(WebApplicationInitializer.class)
+            public class SpringServletContainerInitializer implements ServletContainerInitializer {
+
+                ↓ 传到这方法的第一个参数
+
+            @Override
+            public void onStartup(@Nullable Set<Class<?>> webAppInitializerClasses, ServletContext servletContext)
+
+                ↓各自调用onStartup
+
+            for (WebApplicationInitializer initializer : initializers) {
+                initializer.onStartup(servletContext);
+            }
+
+## 第七节 SpringBoot与Docker
+
+### 7.1 什么是Docker？
+
+    Docker是一个开源的应用容器引擎
+
+    - 容器 + 虚拟机
+
+    Linux：                             Linux2:
+                                        Docker
+    MySQL   -> MySQL-Docker镜像     ->   运行镜像产生MySQL容器
+    Redis   -> Redis-Docker镜像     ->   运行镜像产生Redis容器
+    Tomcat  -> Tomcat-Docker镜像    ->   运行镜像产生Tomcat容器
+    ...
+
+    Docker支持将软件编译成一个镜像；
+    在镜像软件中做好各种配置，将镜像发布出去，其他人可以直接使用镜像；
+    运行中的镜像称为容器，容器的启动是非常快的。
+
+### 7.2 Docker核心概念
+
+    Docker主机（Host） - 安装了Docker程序的机器；Docker直接安装在操作系统上
+
+    Docker客户端（Client） - 连接Docker主机进行操作，与Docker的守护进程进行通信
+
+    Docker仓库（Registry） - 保存Docker镜像用的。有公用也可以私用
+
+    Docker镜像（Images） - 用于创建Docker容器的模板。从守护进程运行镜像即可
+
+    Docker容器（Container） - 镜像启动后的实例称为一个容器 ※同一镜像运行五次即可获得五个实例
+
+    使用步骤:
+        1.安装Docker
+        2.去Docker仓库下载软件镜像
+        3.使用Docker运行镜像，生成Docker容器
+        4.对容器的启动停止就是对软件的启动停止
+
+        Docker要求CentOS内核版本高于3.10
+            uname -r 查看内核版本
+            yum update 升级内核
+            yum install docker 安装Docker
+            systemctl start docker 启动Docker
+            systemctl stop docker 停止Docker
+            systemctl enable docker 开机自启Docker
+
+### 7.3 Docker常用操作
+
+    1.镜像操作
+
+        检索： docker search 关键字 - 就是去Docker Hub搜索镜像
+        拉去： docker pull 镜像名#tag - tag默认latest
+        查看： docker images - 查看所有镜像
+        删除： docker rmi image-id
+
+[Docker Hub](https://hub.docker.com/)
+
+    2.容器操作
+
+        软件镜像 -> 运行镜像 -> 产生容器
+
+        运行： docker run --name 运行名 -d(后台运行) [-p 虚拟机端口：容器映射端口] 镜像名
+        列表： docker ps [-a(所有包括历史)]
+        停止： docker stop 容器ID/容器名
+        启动： docker start 容器ID/容器名
+        删除： docker rm 容器ID/容器名
+        运行tomcat：docker run --name MyTomcat -d -p 8888:8080 tomcat
+        日志： docker logs  容器ID/容器名
+
+        ※想同时启动多个Tomcat时，只要映射不同端口就可以了
+
+### 7.4 环境搭建
+
+    ·MySQL
+    ·Redis
+    ·RabbitMQ
+    ·ElasticSearch
+
+    ※不要忘记映射端口
+
+    几个高级操作：
+        docker run --name some-mysql -v /my/custom:/etc/mysql/conf.d -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql:tag
+
+        -v /my/custom:/etc/mysql/conf.d ： 挂载/my/custom到Docker容器的/etc/mysql/conf.d下
+
+        或者疯狂写参数：
+        docker run --name some-mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql:tag --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci

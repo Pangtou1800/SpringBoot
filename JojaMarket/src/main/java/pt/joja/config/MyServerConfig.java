@@ -11,7 +11,6 @@ import pt.joja.filter.MyFilter;
 import pt.joja.listener.MyListener;
 import pt.joja.servlet.MyServlet;
 
-import javax.servlet.ServletContextListener;
 import java.util.Arrays;
 
 @Configuration
