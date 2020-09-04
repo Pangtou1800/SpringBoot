@@ -9,7 +9,6 @@ import pt.joja.dao.EmployeeDao;
 import pt.joja.entities.Department;
 import pt.joja.entities.Employee;
 
-import java.nio.file.Path;
 import java.util.Collection;
 
 @Controller

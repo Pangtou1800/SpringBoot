@@ -18,7 +18,7 @@ public class MyServerConfig {
 
     @Bean
     public WebServerFactoryCustomizer<ConfigurableWebServerFactory> webServerFactoryCustomizer() {
-        return factory -> factory.setPort(8083);
+        return factory -> factory.setPort(8080);
     }
 
     @Bean

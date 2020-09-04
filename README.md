@@ -273,6 +273,7 @@
                     - pig
 
             
+
             也支持行内写法
                 pets: [cat,dog,pig]
 
@@ -1393,3 +1394,145 @@ Special tokens: - 特殊
 
         或者疯狂写参数：
         docker run --name some-mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql:tag --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+## 第八节 SpringBoot与数据访问
+
+### 8.1 简介
+
+    对于数据访问层，无论是SQL还是NOSQL，SpringBoot默认采用整合SpringData的方式进行统一处理。
+
+    各种场景启动器：spring-boot-starter-data-xxxx
+
+### 8.2 整合JDBC与数据源
+
+    1.添加依赖
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+    
+    2.简单配置
+
+        spring:
+            datasource:
+                url: jdbc:mysql://192.168.229.129:3306/jdbc?serverTimeZone=UTC
+                driver-class-name: com.mysql.cj.jdbc.Driver
+                username: root
+                password: root
+                schema:
+
+                - classpath:department.sql
+                - classpath:employee.sql
+
+                initialization-mode: always
+
+        参考：
+            DataSourceConfiguration
+
+            SpringBoot默认支持：
+                tomcat.jdbc.pool.DataSource
+                HikariDataSource
+                org.apache.commons.dbcp2.BasicDataSource
+
+            也可以自定义DataSource
+
+            初始化时会调用DataSourceInitializer
+                -继承自ApplicationListener
+                -可以自动运行runSchemaScript(), runDataScripts()
+                -schema-*.sql 建表； data-*.sql 插数
+
+    3.高级配置 - 使用druid数据源
+        ·引入druid
+
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid</artifactId>
+                <version>1.1.23</version>
+            </dependency>
+
+            spring.datasource.type: com.alibaba.druid.pool.DruidDataSource
+
+        ·配置属性
+
+            spring:
+                datasource:
+                    type: com.alibaba.druid.pool.DruidDataSource
+                    druid:
+                    url: jdbc:mysql://192.168.229.129:3306/jdbc?serverTimeZone=UTC
+                    driver-class-name: com.mysql.cj.jdbc.Driver
+                    username: root
+                    password: root
+                    initialization-mode: always
+                    minIdle: 5
+                    maxActive: 20
+                    maxWait: 60000
+                    ...
+                    filters: stat
+
+        ·使非内置属性生效
+            @Configuration
+            public class DruidConfig {
+
+                @ConfigurationProperties(prefix = "spring.datasource.druid")
+                @Bean
+                public DataSource druid() {
+                    return new DruidDataSource();
+                }
+
+                //配置一个Druid的监控
+                //1.配置一个管理后台的Servlet
+                @Bean
+                public ServletRegistrationBean<StatViewServlet> statViewServlet() {
+
+                //2.配置一个监控的filter
+                @Bean
+                public FilterRegistrationBean<WebStatFilter> webStatFilter(){
+
+### 8.3 整合MyBatis
+
+    1.添加依赖
+
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>2.1.3</version>
+        </dependency>
+
+        ※MyBatis自己出的，自带mybatis, mybatis-spring
+
+    2.写Bean和Dao
+
+    3.注解版的话，写好Mapper就可以直接用了
+
+        insert:
+            @Options(useGeneratedKeys = true, keyProperty = "id")
+            @Insert("insert into department (departmentName) values(#{departmentName})")
+            Integer insertDepartment(Department department);
+
+    4.添加自定义设置类
+
+        @MapperScan("pt.joja.mapper") - 批量扫描Mapper接口
+        @Configuration
+        public class MyBatisConfig {
+            @Bean
+            public ConfigurationCustomizer configurationCustomizer() {
+                return configuration -> {
+                    configuration.setMapUnderscoreToCamelCase(true);
+                };
+            }
+        }
+
+    5.配置版
+
+        application.yml指定即可 ※全局配置文件会使自定义配置类失效
+
+        mybatis:
+            config-location: classpath:mybatis/mybatis-config.xml
+            mapper-locations: classpath:mybatis/mapper/*.xml
+            

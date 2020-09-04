@@ -10,6 +10,17 @@ public class Employee {
     private String email;
     //1 male, 0 female
     private Integer gender;
+
+    private Integer dId;
+
+    public Integer getdId() {
+        return dId;
+    }
+
+    public void setdId(Integer dId) {
+        this.dId = dId;
+    }
+
     private Department department;
     private Date birth;
 
@@ -81,10 +92,9 @@ public class Employee {
                 ", lastName='" + lastName + '\'' +
                 ", email='" + email + '\'' +
                 ", gender=" + gender +
+                ", dId=" + dId +
                 ", department=" + department +
                 ", birth=" + birth +
                 '}';
     }
-	
-	
 }
