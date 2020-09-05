@@ -1536,6 +1536,7 @@ Special tokens: - 特殊
             config-location: classpath:mybatis/mybatis-config.xml
             mapper-locations: classpath:mybatis/mapper/*.xml
             
+
 ### 第九节 SpringData与JPA
 
 #### 9.1 什么是SpringData?
@@ -1688,7 +1689,113 @@ Special tokens: - 特殊
         2.在application.properties中按照Properties注解的前缀设置属性
         3.从容器中获取功能呢类，就是自动配置完成的类了
 
-            
-        
+## 第十一节 SpringBoot与缓存
 
-    
+    ·JSR-107缓存规范
+    ·Spring缓存抽象
+    ·整合Redis
+
+### 11.1 JSR107规范
+
+    Java Caching定义了5个核心接口
+
+    1.CachingProvider - 缓存提供者
+        定义了创建、配置、获取、管理和控制多个CacheManager。
+        一个应用可以在运行期间访问多个CacheProvider
+    2.CacheManager - 缓存管理器
+        定义了创建、配置、获取、管理和控制多个唯一命名的Cache，
+        这些Cache存在于CacheManager的上下文中。
+        一个CacheManager仅为一个CacheProvider所拥有
+    3.Cache - 缓存
+        是一个类似于Map的数据结构并临时存储以Key为索引的值。
+        一个Cache仅为一个CacheManager所拥有
+    4.Entry - 键值对
+        是一个存储在Cache中的键值对
+    5.Expiry - 有效期
+        每一个存储在Cache中的条目有个一个定义好的有效期。
+        一旦超过这个期限条目处于过期状态。
+        过期的条目不可以访问、更新和删除。
+        缓存有效期通过ExpiryPolicy设置
+
+    导包：
+        <dependency>
+            <groupId>javax.cache</groupId>
+            <artifactId>cache-api</artifactId>
+        </dependency>
+
+    JSR107应为目前支持得不那么广泛，所以更过的使用Spring的缓存抽象
+
+### 11.2 Spring缓存抽象
+
+    Spring保留了CacheManager和Cache两个接口，并支持一部分JSR107的缓存注解
+
+    1.几个重要概念
+
+        CacheManger - 缓存管理器
+        Cache - 缓存接口，有RedisCache、EhCacheCache、ConcurrentMapCache等
+        @Cacheable - 针对方法，根据方法的请求参数对其结果进行缓存
+        @CacheEvict - 清空缓存，可以标注在删除方法上
+        @CachePut - 保证方法被调用，同时希望结果被缓存，比如说更新方法
+        @EnableCaching - 开启基于注解的缓存
+        keyGenerator - 缓存key的生成策略
+        serialize - 缓存数据时value的序列化策略
+
+### 11.3 快速体验缓存
+
+    1.搭建环境
+        Core
+            -Cache
+        Web
+            -Web
+        SQL
+            -MySQL
+            -MyBatis
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>2.1.3</version>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        ·配置数据源
+            spring.datasource...
+
+    2.使用步骤
+
+        1.开启基于注解的缓存
+            @EnableCaching
+
+        2.标注缓存注解
+            @Cacheable
+
+        
+    3.@Cacheable
+        将方法的运行结果进行缓存，再次调用方法时直接从缓存中获取
+            -cacheNames/value: 指定缓存组件的名字
+            -key：缓存数据时用的key，默认使用方法参数的值
+                可以使用SpEL
+                    #id 参数值
+                    #a0
+                    #p0
+                    #root.args[0]
+            -keyGenerator: 默认就用指定的key，也可以定制，和key属性二选一
+            -cacheManger/cacheResolver：从哪个管理器中拿缓存
+            -condition/unless：符合条件的情况下才缓存
+            -sync：是否使用异步模式

@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.229.129:3306/mybatis?serverTimeZone=UTC
+    username: root
+    password: root
+
+server:
+  servlet:
+    context-path: /JojaMarket
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    pt.joja.mapper: debug
