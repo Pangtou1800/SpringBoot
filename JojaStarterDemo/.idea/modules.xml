@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/JojaStarter/JojaStarter.iml" filepath="$PROJECT_DIR$/JojaStarter/JojaStarter.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JojaStarterConfiguratioin/JojaStarterConfiguratioin.iml" filepath="$PROJECT_DIR$/JojaStarterConfiguratioin/JojaStarterConfiguratioin.iml" />
+    </modules>
+  </component>
+</project>

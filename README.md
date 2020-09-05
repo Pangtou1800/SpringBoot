@@ -1536,3 +1536,159 @@ Special tokens: - 特殊
             config-location: classpath:mybatis/mybatis-config.xml
             mapper-locations: classpath:mybatis/mapper/*.xml
             
+### 第九节 SpringData与JPA
+
+#### 9.1 什么是SpringData?
+
+    SpringData项目的目的是为了简化构建基于Spring框架应用的数据访问技术，
+    也包括非关系数据库、MapReduce框架、云数据服务等等。
+
+    特点：
+        ·提供统一的Respository接口，包含了CRUD，排序，分页...
+        ·提供模板类RedisTemplate，MongoTemplate..
+
+    应用程序面向SpringData编程即可
+
+### 9.2 JPA - Java Persistence API
+
+    JSR317规范：使用注解来辅助实现数据持久化
+
+    具体实现有Hibernate、Toplink、OpenJPA等，SpringData默认使用Hibernate
+
+### 9.3 整合JPA
+
+    1.引入依赖
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+    2.配置数据源
+
+    3.使用JPA
+
+        JPA也是基于ORM思想的
+
+        ·编写实体类
+        ·使用JPA注解配置映射关系
+
+            @Entity
+            @Table(name = "tbl_user") - 省略时默认表名类名小写
+            public class User {
+
+            @Id - 主键
+            @GeneratedValue(strategy = GenerationType.IDENTITY) - 自增
+            private int id;
+
+            @Column
+            private String lastName;
+
+        ·编写Dao接口操作实体类对应的数据表
+
+            public interface UserRepository extends JpaRepository<User, Integer> {
+
+                ·JpaRepository就有了sort和paging的功能
+                ·<Entity, PK>
+
+            ※不需要打@Repository注解
+
+        ·配置自动创建数据表，打印执行SQL
+
+            spring:
+                jpa:
+                    hibernate:
+                        ddl-auto: update
+                    show-sql: true
+
+        ·就可以在Controller里直接使用了
+
+## 第九节 SpringBoot启动配置原理
+
+    启动原理、运行流程、自动配置原理
+
+    几个重要的事件回调机制：
+        ApplicationContextInitializer
+        SpringApplicationRunListener
+        ApplicationRunner
+        CommandLineRunner
+
+    启动流程：
+        1.创建SpringApplication对象
+            -initialize(Object...)
+                -判断是否web应用
+                -从类路径下META-INF/spring.factories中寻找所有配置的ApplicationContextInitializer
+                -从类路径下META-INF/spring.factories中寻找所有配置的ApplicationListener
+                -从多个配置类中找到有main方法的主配置类
+
+        2.运行run方法
+            -从类路径下META-INF/spring.factories中寻找所有配置的SpringApplicationRunListener
+            -回调所有的SpringApplicationRunListener.starting()
+            -创建环境之后，回调所有SpringApplicationRunListener.environmentPrepared()
+            -创建IOC容器 ： 决定一下是WebIOC还是普通IOC
+            -准备上下文环境
+                -保存environment
+                -回调所有ApplicationContextInitializer.initialize()
+                -回调所有SpringApplicatoinRunListener.contextPrepared()
+                -最后一步回调所有SpringApplicatoinRunListener.contextLoaded()
+            -刷新容器：IOC容器初始化
+                如果是web应用，嵌入式Tomcat也在此时创建
+            -从IOC容器中获取所有ApplicationRunner和CommandLineRunner，进行回调
+            而且ApplicationRunner比CommandLineRunner先执行
+            -回调所有的SpringApplicationRunListener.finished()
+            -全部启动完成后，返回启动好的IOC容器
+
+## 第十节 SpringBoot自定义starters
+
+    starter：
+        1.场景需要使用的依赖是什么
+        2.如何编写自动配置
+            ·@Configuration指定配置类
+            ·@Conditionalonxxx指定条件
+            ·@AutoConfigureOrder指定自动配置顺序
+            ·@Bean添加各种组件
+            ·使用@ConfigurationProperties结合XXXProperties.class来绑定相关配置
+            ·@EnableConfigurationProperties让XXXProperties生效
+        3.将需要启动就加载的自动配置类配置在/META-INF/spring.factories中
+
+        模式：
+            1.启动器
+                -启动器是一个空的jar文件，仅提供辅助性依赖管理
+                -专门提供一个自动配置模块，受到启动器依赖
+                -命名规约：
+                    官  方："spring-boot-starter-模块名"
+                    自定义："模块名-spring-boot-starter"
+
+    步骤：
+        1.创建一个空工程
+        2.添加Model - starter
+        3.添加Model - starter-autoconfiguration
+        4.向starter中添加starter-autoconfiguration的依赖
+        5.编写starter-autoconfiguration
+            -保留spring-boot-starter的依赖
+            -创建功能类，开启Properties的getter和setter
+            -创建Properties类，注解@ConfigurationProperties，将property都设置为属性
+                @ConfigurationProperties(prefix = "pt.joja")
+                public class HelloProperties {
+            -创建AutoConfiguration类
+                @Configuration
+                @ConditionalOnWebApplication - 条件示例
+                @EnableConfigurationProperties(HelloProperties.class)
+                public class HelloServiceAutoConfiguration {
+                    @Autowired
+                    HelloProperties helloProperties;
+
+                    @Bean - 向容器注入功能类
+                    public HelloService helloService() {
+            -将AutoConfiguration添加至/META-INF/spring.factories中
+        6.安装starter-configuration至仓库
+        7.安装starter至仓库
+    
+    使用：
+        1.在其他SpringBoot工程中，引入starter依赖
+        2.在application.properties中按照Properties注解的前缀设置属性
+        3.从容器中获取功能呢类，就是自动配置完成的类了
+
+            
+        
+
+    
