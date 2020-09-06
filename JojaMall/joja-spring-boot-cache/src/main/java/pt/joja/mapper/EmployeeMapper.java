@@ -9,7 +9,7 @@ public interface EmployeeMapper {
     @Select("select * from employee where id = #{id}")
     Employee getEmployeeById(Integer id);
 
-    @Update("update employee set lastName=#{lastName}, email=#{email}, gender=#{gender}, d_id=#{dId}")
+    @Update("update employee set lastName=#{lastName}, email=#{email}, gender=#{gender}, d_id=#{dId} where id=#{id}")
     void updateEmployee(Employee employee);
 
     @Options(useGeneratedKeys = true, keyProperty = "id")
@@ -19,4 +19,6 @@ public interface EmployeeMapper {
     @Delete("delete from employee where id=#{id}")
     void deleteEmployeeById(Integer id);
 
+    @Select("select * from employee where lastName = #{lastName}")
+    Employee getEmployeeByLastName(String lastName);
 }

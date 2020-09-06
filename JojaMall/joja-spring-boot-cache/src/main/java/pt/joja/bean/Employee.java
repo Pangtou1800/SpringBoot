@@ -1,6 +1,8 @@
 package pt.joja.bean;
 
-public class Employee {
+import java.io.Serializable;
+
+public class Employee implements Serializable {
 
     public Employee() {
     }

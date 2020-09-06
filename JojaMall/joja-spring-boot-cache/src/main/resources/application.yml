@@ -4,6 +4,8 @@ spring:
     url: jdbc:mysql://192.168.229.129:3306/mybatis?serverTimeZone=UTC
     username: root
     password: root
+  redis:
+    host: 192.168.229.129
 
 server:
   servlet:
@@ -16,3 +18,4 @@ mybatis:
 logging:
   level:
     pt.joja.mapper: debug
+

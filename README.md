@@ -1799,3 +1799,123 @@ Special tokens: - 特殊
             -cacheManger/cacheResolver：从哪个管理器中拿缓存
             -condition/unless：符合条件的情况下才缓存
             -sync：是否使用异步模式
+
+        @Cacheable工作原理
+
+            1.缓存标记方法运行之前，先按照cacheNames指定的名字从cacheManager中获取Cache
+            2.拿不到缓存就加锁造一个缓存
+            3.从cache中用generator生成的key进行查找
+            4.没有查到缓存的话就调用目标方法，然后把结果用key放进缓存
+            5.如果查到了缓存就直接返回，不调用目标方法
+
+            可以自定义KeyGenerator：
+                @Configuration
+                public class MyCacheConfig {
+                    @Bean("myKeyGenerator")
+                    public KeyGenerator keyGenerator() {
+                        return (target, method, params) -> {
+                            String key = method.getName() + "[" + Arrays.toString(params) + "]";
+                            System.out.println("myKeyGenerator: " + key);
+                            return key;
+                        };
+                    }
+                }
+
+    4.@CachePut
+        调用方法后更新缓存
+
+        记得要和@Cacheable协调缓存key，以达到同步更新缓存的目的
+
+        @CachePut(key="#employee.id")或(key="#result.id")
+        @Cacheable(key="#id") - 不可以使用result.id因为方法不一定执行
+
+    5.@CacheEvict
+        缓存清除 - 比如说删除了某个记录后
+
+        用key指定清除对象的键
+
+        指定allEntries = true，清空全部缓存内容
+        指定beforeInvocation = true，指定清除在方法执行前进行
+
+    6.@Caching
+        组合注解定义复杂的缓存规则
+
+    7.@CacheConfig(cacheNames = "emp")
+        @Service
+        public class EmployeeService {
+
+            加在类上设置缓存的公共配置
+
+### 11.4 缓存中间件
+
+    除了默认的SimpleCache之外，更多使用的是响应的缓存中间件
+
+    示例：整合Redis
+
+    步骤：
+        1.安装Redis
+        2.添加starter依赖
+        3.配置Redis
+
+            spring:
+                redis:
+                    host: 192.168.229.129:6379
+
+            AutoConfiguration会自动注入
+                @Autowired
+                StringRedisTemplate stringRedisTemplate;
+
+                @Autowired
+                RedisTemplate<Object, Object> redisTemplate;
+
+        4.测试Redis
+            // String
+            stringRedisTemplate.opsForValue();
+            // List
+            stringRedisTemplate.opsForList();
+            // Set
+            stringRedisTemplate.opsForSet();
+            // Hash
+            stringRedisTemplate.opsForHash();
+            // ZSet
+            stringRedisTemplate.opsForZSet();
+
+            使用对象的话，默认会以Java序列化的格式保存 ※通过Java程序可以正常读取
+
+                get "\xac\xed\x00\x05t\x00\x06emp-01"
+                "\xac\xed\x00\x05sr\x00\x15pt.joja.bean.Employee}
+                ...
+                comsq\x00~\x00\x04\x00\x00\x00\x00sq\x00~\x00\x04\x00\x00\x00\x01t\x00\x04Lily"
+
+            一般转换为JSON等形式之后进行保存
+                1.可以自己手动转JSON
+                2.Redis默认提供了一些序列化器，自定义配置中注入容器即可
+
+                    @Bean
+                    public RedisTemplate<Object, Employee> redisTemplateEmployee(RedisConnectionFactory redisConnectionFactory) throws UnknownHostException {
+                        RedisTemplate<Object, Employee> redisTemplate = new RedisTemplate<>();
+                        redisTemplate.setConnectionFactory(redisConnectionFactory);
+                        Jackson2JsonRedisSerializer<Employee> serializer = new Jackson2JsonRedisSerializer<>(Employee.class);
+                        redisTemplate.setDefaultSerializer(serializer);
+                        return redisTemplate;
+                    }
+
+                    ※使用的时候方法名就是beanName
+                    ※反序列化也要使用同一个redisTemplate
+
+        5.测试缓存
+            工作原理：
+                ·引入RedisStarter之后，容器中就注入了RedisCacheManager，
+                其他的CacheManager就不会起作用了
+                ·RedisCacheManger会创建RedisCache
+
+            默认保存<Object, Object>是利用序列化来保存的，
+            因为RedisCacheManager默认使用的是JDK的RedisTempalte
+
+            自定义CacheManager
+
+            默认会将cacheName作为key的前缀
+
+            缓存控制既可以用注解的方式，也可用编码的方式
+
+## 第十二节 SpringBoot与消息
