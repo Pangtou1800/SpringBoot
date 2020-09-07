@@ -1919,3 +1919,231 @@ Special tokens: - 特殊
             缓存控制既可以用注解的方式，也可用编码的方式
 
 ## 第十二节 SpringBoot与消息
+
+### 12.1 概述
+
+    大多数应用都可以通过消息服务中间件来提升系统的异步通信性能，扩展解耦能力
+
+    场景举例：
+        ·异步处理请求写入消息队列，由消息队列异步执行
+        ·应用解耦，不同服务分别写入+订阅
+        ·流量削峰，请求进入消息队列，进队成功的顺次处理；进队失败的快速响应
+
+    两个重要概念：
+        消息代理 message broker
+        目的地 destination
+
+        消息发送者发送消息以后，将由消息代理接管，消息代理保证消息传递到指定目的地
+    
+    主要的两种形式的目的地：
+        1.队列 queue - 点对点消息通信（point-to-point）
+        2.主题 topic - 发布（publish）/订阅（subscribe）消息通信
+
+    点对点式：
+        消息发送者发送消息至队列，消息接收者从队列中获取消息内容，消息读取后被移出队列
+    
+        ※可以有多个接收者，但只有一个接收者能收到消息
+
+    发布订阅式：
+        发布者发送消息到主题，多个接收者监听/订阅主题，那么就会在消息到达时同时收到消息
+
+    JMS - Java Message Service
+        基于JVM消息代理的规范。实现有ActiveMQ、HornetMQ
+
+    AMQP - Advanced Message Queuing Protocol
+        高级消息队列协议，兼容JMS。实现有RabbitMQ
+
+||JMS|AMQP|
+|---|---|---|
+定义|Java API|网络线级协议|
+跨语言|否|是|
+跨平台|否|是|
+Model|1.Peer-2-Peer<br>2.Pub/Sub|1.direct exchange<br>2.fanout exchange<br>3.topic<br>4.headers exchange<br>5.system exchange|
+|支持消息类型|TextMessage<br>MapMessage<br>BytesMessage<br>StreamMessage<br>ObjectMessage<br>Message|byte[]|
+
+    Spring的支持：
+        ·Spring-jms提供了对JMS的支持
+        ·Spring-rabbit提供了对AMQP的支持
+        ·提供了JmsTemplate、RabbitTemplate来发送消息
+        ·@JmsListener、@RabbitListener注解在方法上监听消息
+        ·@EnableJms、@EnableRabiit开启支持
+
+### 12.2 RabiitMQ简介
+
+    erlang开发的AMQP的开源实现
+
+    核心概念：
+        -Message
+            ·消息是不具名的，由消息头和消息体组成
+            ·消息体是不透明的
+            ·消息头由一系列可选属性组成，
+            包括routing-key（路由键）、priority（优先级）、delivery-mode（持久性存储）等
+        -Publisher
+            消息的生产者，一个向交换器发布消息的客户端应用程序
+        -Exchange
+            交换器，用来接收生产者发送的消息，并将消息路由给服务器中的队列
+            ·direct（默认）
+            ·fanout
+            ·topic
+            ·headers
+        -Queue
+            消息队列，保存消息直到发送给消费者
+        -Binding
+            绑定，用于消息队列和交换器之间的关联，基于路由键将交换器和消息队列连接起来
+        -Connection
+            网络连接
+        -Channel
+            信道，多路复用连接中的一条独立的双向数据流通道
+            信道是建立在真实的TCP连接内的虚拟连接，AMQP命令都是通过信道发出去的
+        -Consumer
+            消费者
+        -Virtual Host
+            虚拟主机，表示一批交换器、消息队列和相关对象
+            每个vhost本质上都是一个mini版的RabbitMQ，拥有自己的队列、交换器、绑定和权限机制
+        -Broker
+            消息代理，表示消息队列的服务器实体
+
+            Publisher
+            ↓
+            ---Broker---
+                ---VirtualHost---
+                    Exchange
+                    ↓
+                    ↓Binding
+                    ↓
+                    Queue
+                ---
+            ---
+            ↓
+            ---Connection---
+                Channel Channel Channel
+                ↓       ↓       ↓
+            ---
+            ↓
+            Consumer
+
+### 12.3 RabbitMQ运行机制
+
+    1.AMQP的消息路由
+
+        AMQP相比于JMS增加了Exchange和Binding的角色
+
+    2.Exchange类型
+
+        ·direct - 直连，完全一致
+            routing key = Queue的binding key时进行连接
+        ·fanout - 广播
+            不看路由键，直接绑定到所有队列上
+        ·topic - 主题
+            路由键模糊匹配
+            routing key : key1.key2.key3
+            binding key : key1.*.* key1.# #.key3 ...
+
+            # : 0或多个单词
+            * ：1个单词
+
+### 12.4 RabbitMQ整合
+
+    0.安装RabbitMQ
+
+        docker run -d -p 5672:5672 -p 15672:15672 --name RabbitMQ0907 587380cbba10
+                            ↑           ↑
+                        消息接口      管理接口
+
+        0.1 在交互页面上添加Exchange
+            exchange.direct
+            exchange.fanout
+            exchange.topic
+
+        0.2 在交互页面上添加消息队列
+            joja
+            joja.emps
+            joja.news
+            market.news
+
+        0.3 绑定路由键
+            direct - joja : joja
+            direct - joja.emps : joja.emps
+            direct - joja.news : joja.news
+            direct - market.news : market.news
+            fanout - joja : joja
+            fanout - joja.emps : joja.emps
+            fanout - joja.news : joja.news
+            fanout - market.news : market.news
+            topic - joja : joja.#
+            topic - joja.emp : joja.#
+            topic - joja.news : joja.#
+            topic - joja.news : *.news
+            topic - market.news : *.news
+
+        0.4 在交互页面上测试发送消息
+
+
+    1.添加依赖
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
+        自带依赖
+            spring-message
+            spring-rabbit
+
+        RabbitAutoConfiguration
+            -自动配置了连接工厂
+            -从RabbitProperteis中获取属性
+            -添加RabbitTemplate
+            -添加AmqpAdmin ： RabbitMQ系统管理组件，可以创建队列等等
+
+    2.配置
+
+        spring:
+            rabbitmq:
+                host: 192.168.229.129
+                username: guest
+                password: guest
+                port: 5672
+                virtual-host: /
+
+    3.测试
+        rabbitTemplate.send("", "", message);
+            - 自制Message
+        rabbitTemplate.convertAndSend("" ,"", object);
+            - Object自动转换消息体，默认Java序列化
+        Object o = rabbitTemplate.receiveAndConvert("joja.news");
+            - 指定消息队列，默认Java反序列化，取走之后消息消失
+
+    4.定制Converter
+
+        注入MessageConver即可
+
+        @Configuration
+        public class RabbitConfig {
+            @Bean
+            public MessageConverter messageConverter(){
+                return new Jackson2JsonMessageConverter();
+            }
+        }
+
+        ※自带了JSON converter，序列化、反序列化自定义对象都是可以的
+
+    5.配备监听器
+
+        @EnableRabbit
+        SpringApplication
+
+        @RabbitListener(queues = {"joja.news", "market.news"})
+        listenerMethod
+
+    6.程序中创建组件
+
+        AmqpAdmin
+
+        amqpAdmin.declareExchange(new DirectExchange("amqp.exchange.direct"));
+        amqpAdmin.declareQueue
+        amqpAdmin.Binding
+
+        ※各种declare方法即可
+
+## 第十三节 SpringBoot与检索
