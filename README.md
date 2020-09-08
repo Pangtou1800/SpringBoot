@@ -2147,3 +2147,159 @@ Model|1.Peer-2-Peer<br>2.Pub/Sub|1.direct exchange<br>2.fanout exchange<br>3.top
         ※各种declare方法即可
 
 ## 第十三节 SpringBoot与检索
+
+### 13.1 检索
+
+    我们的应用经常需要添加检索功能，开源的ElasticSearch是目前全文搜索引擎的首选。
+    它可以快速地存储、搜索和分析海量的数据。
+
+    ElasticSearch是一个分布式搜索引擎，提供RestfulAPI，底层基于Lucene，
+    采用多分片（shard）的方式保证数据安全，并且提供自动resharding功能。
+
+### 13.2 安装ElasticSearch环境
+
+    1.安装Docker镜像
+    2.启动Docker镜像
+
+        ·ElasticSearch默认启动占用2G的内存，加-e选项设置内存容量
+        ·ElasticSearch的网络接口默认9200
+        ·ElasticSearch节点间互相通信接口9300
+
+        docker run -e ES_JAVA_OPTS="-Xms256m -Xmx256m" -d -p 9200:9200 -p 9300:9300 --name Elastic0908 elasticsearch
+
+        启动后直接外部浏览器访问9200端口即可
+
+            {
+                "name" : "zF0HKUJ",
+                "cluster_name" : "elasticsearch",
+                "cluster_uuid" : "N4iR8EwMSU-3B_6rlE_qmQ",
+                "version" : {
+                    "number" : "5.6.12",
+                    "build_hash" : "cfe3d9f",
+                    "build_date" : "2018-09-10T20:12:43.732Z",
+                    "build_snapshot" : false,
+                    "lucene_version" : "6.6.1"
+                },
+                "tagline" : "You Know, for Search"
+            }
+
+    3.基本介绍
+
+        ElasticSearch是面向文档的，它存储着整个对象或文档
+        而且会索引每个文档的内容使之可以被检索、排序和过滤
+        ES使用JSON作为文档的序列化格式
+
+        存储数据到ES的行为就称为索引
+
+        一个ES集群里可有多个索引，每个索引可以包含多个类型，每个类型包含多个属性
+
+        ES集群
+        ↓
+        索引1           索引2
+        ↓--------       ↓
+        类型1   类型2   ...
+        ↓
+        文档1
+        {
+            属性：值
+            ...
+        }
+        文档2
+        {
+            属性：值
+            ...
+        }
+
+        类比：索引-库，类型-表，文档-记录
+
+        简单操作：
+
+            PUT /索引/类型/文档ID - 初次为插入，既存为更新
+            {
+                属性：值
+                ...
+            }
+
+            GET  /索引/类型/文档ID - 检索
+
+            DELETE  /索引/类型/文档ID - 删除
+
+            HEAD  /索引/类型/文档ID - 查找是否存在
+
+            GET  /索引/类型/_search - 检索所有
+
+            GET  /索引/类型/_search?q=last_name:Smith - 检索条件
+
+                ※返回值里还有相关性得分
+
+            GET/POST /索引/类型/_search - 按JSON的表达式检索
+            {
+                "query": {
+                    "match": { - 匹配语法规则
+                    "last_name": "Smith"
+                    }
+                }
+            }
+
+        全文检索：
+            "match": {
+                "about": "rock climbing" - about属性里是不是有"rock","climbing"
+            }
+
+            包含任一词汇即可
+
+        短语检索：
+            "match_phrase": {
+                "about": "rock climbing" - about属性里是不是有"rock climbing"
+            }
+
+        高亮检索：
+            "query": {
+                "match_phrase": {
+                    "about": "rock climbing" - about属性里是不是有"rock climbing"
+                }
+            },
+            "highlight": {
+                "fields": {
+                    "about": {}
+                }
+            }
+
+            - 查询结果中就会有以下内容：
+                "highlight": {
+                    "about": [
+                        "I love to go <em>rock</em> <em>climbing</em>"
+                    ]
+                }
+            
+### 13.3 SpringBoot整合ElasticSearch
+
+    1.添加依赖
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+        </dependency>
+
+        ※SpringBoot默认用spring-data-elasticsearch模块进行操作
+
+        SpringBoot默认支持两种技术来和ES交互：
+            ·Jest - 似乎已经不再默认支持了
+            ·SpringData
+
+    2.利用自动注入的变量进行操作
+
+        @Autowired
+        RestHighLevelClient highLevelClient;
+
+        @Autowired
+        ElasticsearchOperations elasticsearchOperations;
+
+        目前只要指定一个地址就可以了
+
+        spring:
+            elasticsearch:
+                rest:
+                    uris: 192.168.229.129:9200
+
+    ※ElasticSearch标准正在疯狂改定中。。。MappingType预定删除，接口剧烈变化

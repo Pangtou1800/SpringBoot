@@ -6,6 +6,7 @@
     <modules>
         <module>joja-spring-boot-cache</module>
         <module>joja-spring-boot-rabbitmq</module>
+        <module>joja-spring-boot-elastic</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>

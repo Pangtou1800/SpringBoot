@@ -1,0 +1,10 @@
+spring:
+  elasticsearch:
+    rest:
+      uris: 192.168.229.129:9200
+
+
+  data:
+    elasticsearch:
+      repositories:
+        enabled: true
