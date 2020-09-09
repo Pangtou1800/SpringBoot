@@ -2303,3 +2303,118 @@ Model|1.Peer-2-Peer<br>2.Pub/Sub|1.direct exchange<br>2.fanout exchange<br>3.top
                     uris: 192.168.229.129:9200
 
     ※ElasticSearch标准正在疯狂改定中。。。MappingType预定删除，接口剧烈变化
+
+### 第十四节 SpringBoot与任务
+
+#### 14.1 异步方法
+
+    @EnableAsync
+    @SpringBootApplication
+    public class Bootstrap {
+
+    @Service
+    public class AsyncService {
+
+        @Async
+        public void hello() {
+
+    Spring就会自动管理一个线程池，异步调用方法
+
+    ※方法不可以有返回值~
+
+#### 14.2 定时任务
+
+    @EnableScheduling
+    @SpringBootApplication
+    public class Bootstrap {
+
+    @Service
+    public class ScheduledService {
+
+        @Scheduled(cron = "5 * * * * MON-SAT")
+        public void hello() {
+
+    即可启动一个定时任务
+
+    ※不需要显式呼叫
+
+#### 14.3 CRON表达式语法
+
+|字段|允许值|特殊符号|
+|---|---|---|
+|秒|0-59|, - * /|
+|分|0-59|, - * /|
+|小时|0-23|, - * /|
+|日期|1-31|, - * ? / L W C|
+|月份|1-12|, - * /|
+|星期|0-7,SUN-SAT<br>※0,7都是SUN|, - * / L C #|
+
+|特殊符号|含义|
+|---|---|
+|,|枚举|
+|-|区间|
+|*|任意|
+|/|步长|
+|?|日/星期冲突匹配|
+|L|最后|
+|W|工作日|
+|C|和Calendar联系后计算过的值|
+|#|星期 4#2 第2个星期四|
+
+#### 14.4 邮件任务
+
+    1.引入依赖
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
+    2.邮件发送过程
+
+        mary@joja.com       lily@163.com
+        ↓                   ↓
+        joja mail server →  163 mail server
+
+    3.配置邮箱服务器
+
+        spring:
+            mail:
+                username: mary@joja.com
+                password: ELIADUSFKTCR****Y - 授权秘钥，从邮箱设置处获取
+                host: smtp.joja.com
+
+    4.发送邮件
+
+        @Autowired
+        JavaMailSender javaMailSender;
+
+        @Test
+        public void mailTest() {
+            SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+            simpleMailMessage.setSubject("通知-今晚开会");
+            simpleMailMessage.setText("Mary：你好！今晚7点开会");
+            simpleMailMessage.setTo("lily@163.com");
+            simpleMailMessage.setFrom("mary@joja.com");
+            javaMailSender.send(simpleMailMessage);
+        }
+
+    5.额外
+
+        对需要安全配置的服务器开启安全模式：
+            properties:
+                mail:
+                    smtp:
+                        ssl:
+                            enable: true
+
+    6.复杂邮件
+
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, true);
+
+        ...操作messageHelper
+
+        javaMailSender.send(mimeMessage);
+
+### 第十五节 SpringBoot与安全

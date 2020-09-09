@@ -1,0 +1,10 @@
+spring:
+  mail:
+    username: pangtou1404@163.com
+    password: ELIADUSFKTCRCCAY
+    host: smtp.163.com
+    properties:
+      mail:
+        smtp:
+          ssl:
+            enable: true
