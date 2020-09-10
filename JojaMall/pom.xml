@@ -8,6 +8,7 @@
         <module>joja-spring-boot-rabbitmq</module>
         <module>joja-spring-boot-elastic</module>
         <module>joja-spring-boot-task</module>
+        <module>joja-spring-boot-security</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>

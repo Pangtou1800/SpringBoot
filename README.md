@@ -2418,3 +2418,145 @@ Model|1.Peer-2-Peer<br>2.Pub/Sub|1.direct exchange<br>2.fanout exchange<br>3.top
         javaMailSender.send(mimeMessage);
 
 ### 第十五节 SpringBoot与安全
+
+#### 15.1 常用的两个安全框架
+
+    ·Shiro
+        强大易用
+    ·SpringSecurity
+        复杂强大，但可以整合Spring
+
+    1.安全
+        安全框架主要负责两个功能：
+            ·认证
+            ·授权
+
+    2.认证 - Authentication
+        建立一个声明的主体（以用户名和密码登录，成为一个用户）
+    
+    3.授权 - Authorization
+        确定一个主体是否被允许在应用程序中执行一个动作
+
+
+#### 15.2 SpringSecurity体验
+
+    1.没有Security时的Web系统
+
+        ·所有人可以访问所有页面
+
+    2.引入依赖
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+    3.编写配置类
+
+        @EnableWebSecurity
+        public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+            //授权规则
+            @Override
+            protected void configure(HttpSecurity http) throws Exception {
+
+                //添加规则
+                http.authorizeRequests().antMatchers("/").permitAll()
+                    .antMatchers("/level1/**").hasRole("VIP1")
+                    .antMatchers("/level2/**").hasRole("VIP2")
+                    .antMatchers("/level3/**").hasRole("VIP3");
+                //开启登录功能
+                http.formLogin();
+                //1. /login请求来到登录页
+                //2. 登录错误重定向到/login?error
+                //3. 更多详细规则
+
+            //认证规则
+            @Override
+            protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+                PasswordEncoder passwordEncoder= new BCryptPasswordEncoder();
+                auth.inMemoryAuthentication().passwordEncoder(passwordEncoder)
+                        .withUser("Mary").password(passwordEncoder.encode("1234")).roles("VIP1", "VIP2")
+                        ...
+
+    4.测试
+
+        在SpringSecurity默认的认证页面上登录后，就可以访问响应权限的路径，
+        不然报错
+
+    5.注销功能
+
+        http.logout();
+
+        开启注销功能，默认注销后再次来到登录界面
+
+    6.用户订制页面
+        
+        结合ThymeLeaf对SpringSecurity的支持，实现用户订制页面
+
+        ·引入依赖
+            <dependency>
+                <groupId>org.thymeleaf.extras</groupId>
+                <artifactId>thymeleaf-extras-springsecurity4</artifactId>
+                <version>3.0.4.RELEASE</version>
+            </dependency>
+        
+        ·ThymeLeaf中加入命名空间
+
+            xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+
+            <div sec:authorize="isAuthenticated()"> - 是否登录
+
+            <div sec:authorize="hasRole('VIP1')"> - 向有角色的用户开放
+
+            <span sec:authentication="name"> - 获取用户名
+
+            <span sec:authentication="principal.authorities"> - 获取用户所有角色
+        
+    7.记住我功能
+
+        http.rememberMe();
+
+        登录页面自动添加勾选项“记住我”
+        ·勾选后登录成功就会发送Cookie过来，以后再登录自动携带
+        ·注销动作会删除Cookie
+
+    8.订制登录页面
+
+        http.formLogin().loginPage("/userlogin").usernameParameter("joja_username").passwordParameter("joja_password");
+
+        ※loginPage的url GET就是转登录页面，POST就是登录请求
+
+## 第十六节 SpringBoot与分布式
+
+### 16.1 分布式应用
+
+    ORM - All in One
+    ↓
+    MVC - Vertical Application
+    ↓
+    RPC - Distributed Service
+    ↓
+    SOA - Elastic Computing
+
+    分布式系统国内常用ZooKeeper + Dubbo
+    SpringBoot推荐全栈Spring， SpringBoot + SpringCloud
+
+### 16.2 ZooKeeper和Dubbo
+
+    1.ZooKeeper
+
+        ZooKeeper是一个分布式的开源分布式应用程序协调服务。
+        它为一个分布式应用提供一致性服务。
+        包括：
+            ·配置维护
+            ·域名服务
+            ·分布式同步
+            ·组服务
+            ...
+
+    2.Dubbo
+
+        Dubbo是Alibaba开源的分布式服务框架，它的最大特点是按照分层的方式来架构，
+        这种方式可以使各层之间解耦。
+        Dubbo采用非常简单的服务提供方（Provider）和服务消费方（Consumer）角色模型。
