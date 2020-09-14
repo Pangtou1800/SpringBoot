@@ -9,6 +9,11 @@
         <module>joja-spring-boot-elastic</module>
         <module>joja-spring-boot-task</module>
         <module>joja-spring-boot-security</module>
+        <module>joja-spring-boot-dubbo-provider</module>
+        <module>joja-spring-boot-dubbo-consumer</module>
+        <module>joja-spring-cloud-eureka</module>
+        <module>joja-spring-cloud-eureka-provider</module>
+        <module>joja-spring-cloud-eureka-consumer</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>

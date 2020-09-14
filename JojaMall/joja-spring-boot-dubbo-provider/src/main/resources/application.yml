@@ -1,0 +1,8 @@
+dubbo:
+  application:
+    name: provider-ticket
+  registry:
+    address: 'zookeeper://192.168.229.129:2181'
+    timeout: 25000
+  scan:
+    base-packages: pt.joja.service

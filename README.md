@@ -2560,3 +2560,174 @@ Model|1.Peer-2-Peer<br>2.Pub/Sub|1.direct exchange<br>2.fanout exchange<br>3.top
         Dubbo是Alibaba开源的分布式服务框架，它的最大特点是按照分层的方式来架构，
         这种方式可以使各层之间解耦。
         Dubbo采用非常简单的服务提供方（Provider）和服务消费方（Consumer）角色模型。
+
+### 16.3 ZooKeeper和Dubbo体验
+
+    1.安装ZooKeeper
+
+        2181: Client port
+        2888: Follower port
+        3888: election port
+
+        docker run --name ZooKeeper0914 -p 2181:2181 --restart always -d zookeeper
+
+    2.创建Dubbo服务提供者
+
+        TicketService
+            -TicketServiceImpl
+
+        -注册服务提供者到服务注册中心
+            ·添加依赖
+                <dependency>
+                    <groupId>org.apache.dubbo</groupId>
+                    <artifactId>dubbo-spring-boot-starter</artifactId>
+                    <version>2.7.8</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.dubbo</groupId>
+                    <artifactId>dubbo-dependencies-zookeeper</artifactId>
+                    <version>2.7.8</version>
+                    <type>pom</type>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.slf4j</groupId>
+                            <artifactId>slf4j-log4j12</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+
+            ·配置application.yml
+                dubbo:
+                    application:
+                        name: provider-ticket
+                    registry:
+                        address: zookeeper://192.168.229.129:2181
+                        timeout: 25000 - 可以搞得长一些，不然会zookeeper not connected
+                    scan:
+                        base-packages: pt.joja.service
+    
+            ·标记注册服务
+                @Component
+                @DubboService
+                public class TicketServiceImpl implements TicketService {
+
+    3.创建Dubbo服务消费者
+
+        Consumer
+
+        ·添加依赖
+            -和Provider相同的依赖即可
+        ·配置
+            -和Provider相同的配置即可 ※除去Scan
+        ·引用服务
+            @DubboReference
+            TicketService ticketService;
+
+### 16.4 SpringBoot和SpringCloud
+
+    SpringCloud是一个分布式的整体解决方案。
+    它为开发者提供了在分布式系统中快速构建的工具。
+        -配置管理
+        -服务发现
+        -熔断
+        -路由
+        -微代理
+        -控制总线
+        -一次性Token
+        -全局锁
+        -leader选举
+        -分布式Session
+        -集群状态
+        ...
+
+    SpringCloud分布式开发五大常用组件：
+        ·服务发现 - Netflix Eureka
+        ·客户端负载均衡 - Netflix Ribbon
+        ·断路器 - Netflix Hystrix
+        ·服务网关 - Netflix Zuul
+        ·分布式配置 - Spring Cloud Config
+
+### 16.5 SpringCloud体验
+
+    1.创建Eureka-Server模块 ※注册中心
+        -配置
+            server:
+                port: 8761
+                eureka:
+                instance:
+                    hostname: eureka-server
+                client:
+                    register-with-eureka: false #不把自己注册到服务中
+                    fetch-registry: false #不从Eureka上获取服务的注册信息
+                    service-url:
+                    defaultZone: http://localhost:8761/eureka/
+        -注解
+            @EnableEurekaServer
+            @SpringBootApplication
+            public class Bootstrap {
+        -启动后测试
+            localhost:8761 到达Eureka管理界面
+
+    2.创建Eureka-Client-Provider模块
+        -配置
+            server:
+                port: 8001 #提供者端口
+            spring:
+                application:
+                    name: provider-ticket
+            eureka:
+                instance:
+                    prefer-ip-address: true #注册服务时使用服务的IP地址
+                client:
+                    service-url:
+                    defaultZone: http://localhost:8761/eureka/
+
+        -写Rest服务
+            @RestController
+            public class TicketController {
+
+        -启动
+            Eureka管理界面可以发现已经注册了一个实例
+
+            ※多个jar包开始运行就可以启动多个服务实例，application名相同即为同一服务
+
+    3.创建Eureka-Client-Consumer模块
+        -配置
+            和Provider相同
+        -添加注解
+            @EnableDiscoveryClient - 开启发现服务的能力
+            @SpringBootApplication
+            public class Bootstrap {
+                public static void main(String[] args) {
+                    SpringApplication.run(Bootstrap.class);
+                }
+
+                @LoadBalanced - 负载均衡
+                @Bean
+                public RestTemplate restTemplate() {
+                    return new RestTemplate();
+                }
+            }
+        -写Rest服务
+            @RestController
+            public class UserController {
+
+                RestTemplate restTemplate;
+
+                public UserController(RestTemplate restTemplate) {
+                    this.restTemplate = restTemplate;
+                }
+
+                @GetMapping("/buy")
+                public String buyTicket(String name) {
+                    String ticket = restTemplate.getForObject("http://PROVIDER-TICKET/ticket", String.class);
+                    return name + "购买了：" + ticket;
+                }
+        -启动
+            Eureka管理界面可以发现Consumer也注册了
+
+            localhost:8200/buy?name=Mary
+
+            即可完成远程调用，而且有默认的负载均衡机制
+
+## 第十七节 SpringBoot与开发热部署
