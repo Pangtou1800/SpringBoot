@@ -14,6 +14,8 @@
         <module>joja-spring-cloud-eureka</module>
         <module>joja-spring-cloud-eureka-provider</module>
         <module>joja-spring-cloud-eureka-consumer</module>
+        <module>joja-spring-boot-deploy</module>
+        <module>joja-spring-boot-actuator</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>

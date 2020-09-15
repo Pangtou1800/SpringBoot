@@ -1559,6 +1559,7 @@ Special tokens: - 特殊
 ### 9.3 整合JPA
 
     1.引入依赖
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -1763,11 +1764,13 @@ Special tokens: - 特殊
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter</artifactId>
             <version>2.1.3</version>
         </dependency>
+
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
@@ -1958,7 +1961,7 @@ Special tokens: - 特殊
 定义|Java API|网络线级协议|
 跨语言|否|是|
 跨平台|否|是|
-Model|1.Peer-2-Peer<br>2.Pub/Sub|1.direct exchange<br>2.fanout exchange<br>3.topic<br>4.headers exchange<br>5.system exchange|
+Model|1. Peer-2-Peer<br>2. Pub/Sub|1.direct exchange<br>2.fanout exchange<br>3.topic<br>4.headers exchange<br>5.system exchange|
 |支持消息类型|TextMessage<br>MapMessage<br>BytesMessage<br>StreamMessage<br>ObjectMessage<br>Message|byte[]|
 
     Spring的支持：
@@ -2040,6 +2043,7 @@ Model|1.Peer-2-Peer<br>2.Pub/Sub|1.direct exchange<br>2.fanout exchange<br>3.top
             binding key : key1.*.* key1.# #.key3 ...
 
             # : 0或多个单词
+
             * ：1个单词
 
 ### 12.4 RabbitMQ整合
@@ -2078,7 +2082,6 @@ Model|1.Peer-2-Peer<br>2.Pub/Sub|1.direct exchange<br>2.fanout exchange<br>3.top
 
         0.4 在交互页面上测试发送消息
 
-
     1.添加依赖
 
         <dependency>
@@ -2108,10 +2111,15 @@ Model|1.Peer-2-Peer<br>2.Pub/Sub|1.direct exchange<br>2.fanout exchange<br>3.top
 
     3.测试
         rabbitTemplate.send("", "", message);
+
             - 自制Message
+
         rabbitTemplate.convertAndSend("" ,"", object);
+
             - Object自动转换消息体，默认Java序列化
+
         Object o = rabbitTemplate.receiveAndConvert("joja.news");
+
             - 指定消息队列，默认Java反序列化，取走之后消息消失
 
     4.定制Converter
@@ -2266,12 +2274,14 @@ Model|1.Peer-2-Peer<br>2.Pub/Sub|1.direct exchange<br>2.fanout exchange<br>3.top
             }
 
             - 查询结果中就会有以下内容：
+
                 "highlight": {
                     "about": [
                         "I love to go <em>rock</em> <em>climbing</em>"
                     ]
                 }
             
+
 ### 13.3 SpringBoot整合ElasticSearch
 
     1.添加依赖
@@ -2347,11 +2357,11 @@ Model|1.Peer-2-Peer<br>2.Pub/Sub|1.direct exchange<br>2.fanout exchange<br>3.top
 |小时|0-23|, - * /|
 |日期|1-31|, - * ? / L W C|
 |月份|1-12|, - * /|
-|星期|0-7,SUN-SAT<br>※0,7都是SUN|, - * / L C #|
+|星期|0-7, SUN-SAT<br>※0, 7都是SUN|, - * / L C #|
 
 |特殊符号|含义|
 |---|---|
-|,|枚举|
+|, |枚举|
 |-|区间|
 |*|任意|
 |/|步长|
@@ -2436,7 +2446,6 @@ Model|1.Peer-2-Peer<br>2.Pub/Sub|1.direct exchange<br>2.fanout exchange<br>3.top
     
     3.授权 - Authorization
         确定一个主体是否被允许在应用程序中执行一个动作
-
 
 #### 15.2 SpringSecurity体验
 
@@ -2731,3 +2740,76 @@ Model|1.Peer-2-Peer<br>2.Pub/Sub|1.direct exchange<br>2.fanout exchange<br>3.top
             即可完成远程调用，而且有默认的负载均衡机制
 
 ## 第十七节 SpringBoot与开发热部署
+
+### 17.1 热部署
+
+    修改了一个Java文件以后，在不重启应用的情况下，程序自动部署就称为热部署。
+
+    1.模板引擎
+        -SpringBoot中开发情况下禁用模板引擎的Cache
+        -页面模板改变Ctrl+F9可以重新编译当前页面并生效
+    
+    2.SpringLoaded
+        -添加SpringLoaded框架
+        -运行时添加参数
+            -javaagent:...
+    
+    3.JRebel
+        -收费的一个热部署插件
+        -安装插件使用即可
+
+    4.SpringBoot Devtools
+        -引入依赖
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-devtools</artifactId>
+            </dependency>
+        
+        -IDEA Ctril+F9编译（build） 或 设置自动编译
+
+## 第十八节 SpringBoot与监控管理
+
+    通过引入spring-boot-starter-actuator，可以使用SpringBoot为我们提供的
+    准生产环境下的应用监控和管理功能。
+    可以通过HTTP、JMX、SSH协议来进行操作，得到审计、健康及指标信息
+
+### 18.1 步骤
+
+    -添加依赖
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+    -选择开启的端点
+        management:
+            endpoints:
+                web:
+                exposure:
+                    include: "*" - 全开
+    -通过http方式访问监控端点
+        http://localhost:8080/actuator...
+    -可以进行SHUTDOWN
+        management:
+            endpoint:
+                shutdown:
+                  enabled: true
+
+        ※POST请求/actuator/shutdown即可远程关闭
+
+### 18.2 端点
+
+    health - 应用的健康状况信息
+    auditevents - 审计事件相关
+    beans - 容器中每一个组件
+    info - 应用的相关信息，在配置文件中以info开头配置 或 继承了InfoProperties的配置类信息
+    threaddump - 线程状态信息
+    heapdump - 堆Dump，生成一个Dump文件
+    conditions - 自动配置的生效信息
+    httptrace - 追踪信息
+    mappings - 映射信息
+    metrics - 系统监控指标，JVM属性、内存消耗情况...
+    env - 环境信息
+    loggers - 日志相关
+    configprops - 配置信息
+
+    ※端点信息可以定制
